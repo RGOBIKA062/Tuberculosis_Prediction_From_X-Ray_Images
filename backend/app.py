@@ -8,6 +8,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from PIL import Image, UnidentifiedImageError
 
+from database import PredictionDatabaseError, save_prediction
 from model import CLASS_NAMES, create_inference_transform, load_model, preprocess_image
 
 
@@ -46,13 +47,18 @@ def create_app() -> Flask:
                 probabilities = torch.softmax(app.config["MODEL"](input_tensor), dim=1)[0]
             class_index = int(torch.argmax(probabilities).item())
             confidence = float(probabilities[class_index].item() * 100)
+            prediction = CLASS_NAMES[class_index]
+            rounded_confidence = round(confidence, 2)
+            save_prediction(prediction, rounded_confidence)
             return jsonify(
                 {
                     "success": True,
-                    "prediction": CLASS_NAMES[class_index],
-                    "confidence": round(confidence, 2),
+                    "prediction": prediction,
+                    "confidence": rounded_confidence,
                 }
             )
+        except PredictionDatabaseError as error:
+            return jsonify({"success": False, "error": str(error)}), 503
         except (RuntimeError, ValueError, IndexError):
             return jsonify({"success": False, "error": "Prediction failed."}), 500
 

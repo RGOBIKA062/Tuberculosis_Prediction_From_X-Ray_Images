@@ -4,7 +4,7 @@ This folder contains the Flask backend for the existing React frontend.
 
 ## Current status
 
-The backend can load the supplied CoAtNet-0 checkpoint and predict from an uploaded image. MySQL history and frontend API wiring are separate tasks.
+The backend can load the supplied CoAtNet-0 checkpoint, predict from an uploaded image, and save successful predictions to MySQL. Frontend API wiring is a separate task.
 
 ## Setup
 
@@ -39,8 +39,8 @@ Health check: `GET http://127.0.0.1:5000/api/health`
 
 Prediction endpoint: `POST http://127.0.0.1:5000/api/predict`
 
-Send the image as a `multipart/form-data` field named `image`. Successful responses contain `prediction` (`Normal` or `Tuberculosis`) and the model probability as `confidence`.
+Send the image as a `multipart/form-data` field named `image`. Successful responses contain `prediction` (`Normal` or `Tuberculosis`) and the model probability as `confidence`. The result is saved to `prediction_history` after inference succeeds.
 
 ## Security and data scope
 
-The planned history table stores only prediction, confidence, and creation time. It does not store patient details or X-ray files. Never commit `.env` or model checkpoints.
+The history table stores only prediction, confidence, and creation time. It does not store patient details or X-ray files. Never commit `.env` or model checkpoints.
