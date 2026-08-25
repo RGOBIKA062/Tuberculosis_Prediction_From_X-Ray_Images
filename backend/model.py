@@ -2,6 +2,7 @@ from pathlib import Path
 
 import timm
 import torch
+from PIL import Image
 
 
 MODEL_NAME = "coatnet_0_rw_224"
@@ -24,3 +25,13 @@ def load_model() -> torch.nn.Module:
     model.to(DEVICE)
     model.eval()
     return model
+
+
+def create_inference_transform(model: torch.nn.Module):
+    data_config = timm.data.resolve_model_data_config(model)
+    return timm.data.create_transform(**data_config, is_training=False)
+
+
+def preprocess_image(image: Image.Image, transform) -> torch.Tensor:
+    image = image.convert("RGB")
+    return transform(image).unsqueeze(0).to(DEVICE)
