@@ -4,14 +4,7 @@ This folder contains the Flask backend for the existing React frontend.
 
 ## Current status
 
-The setup is ready, but model inference is intentionally not implemented yet. The backend must receive:
-
-- `models/Best_CoAtNet_Model.pth`
-- Notebook 07 model-loading code
-- Notebook 07 validation/test transform and data configuration
-- The trained class order, such as `Normal, Tuberculosis`
-
-The preprocessing and checkpoint format will not be guessed.
+The backend can load the supplied CoAtNet-0 checkpoint and predict from an uploaded image. MySQL history and frontend API wiring are separate tasks.
 
 ## Setup
 
@@ -46,7 +39,7 @@ Health check: `GET http://127.0.0.1:5000/api/health`
 
 Prediction endpoint: `POST http://127.0.0.1:5000/api/predict`
 
-The prediction endpoint currently returns HTTP 503 until the real CoAtNet-0 inference implementation is added.
+Send the image as a `multipart/form-data` field named `image`. Successful responses contain `prediction` (`Normal` or `Tuberculosis`) and the model probability as `confidence`.
 
 ## Security and data scope
 
