@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify
 from flask_cors import CORS
 
+from model import load_model
+
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
@@ -13,10 +15,11 @@ load_dotenv(BASE_DIR / ".env")
 def create_app() -> Flask:
     app = Flask(__name__)
     CORS(app, resources={r"/api/*": {"origins": "*"}})
+    app.config["MODEL"] = load_model()
 
     @app.get("/api/health")
     def health():
-        return jsonify({"success": True, "status": "backend-ready"})
+        return jsonify({"success": True, "status": "backend-ready", "model": "loaded"})
 
     @app.post("/api/predict")
     def predict():
