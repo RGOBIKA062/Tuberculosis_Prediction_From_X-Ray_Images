@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/SiteHeader";
-import { analyzeLocally, saveScan, type ScanRecord } from "@/lib/frontend-store";
+import { analyzeWithBackend, saveScan, type ScanRecord } from "@/lib/frontend-store";
 import { useSession } from "@/hooks/use-session";
 
 export const Route = createFileRoute("/console")({ component: ConsolePage });
@@ -32,7 +32,7 @@ function ConsolePage() {
     setBusy(true);
     try {
       const imageDataUrl = await readImageDataUrl(file);
-      const analysis = await analyzeLocally();
+      const analysis = await analyzeWithBackend(file);
       const scan: ScanRecord = {
         id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
         patientName: patientName.trim(),
@@ -46,7 +46,7 @@ function ConsolePage() {
       };
       saveScan(scan);
       setResult(scan);
-      toast.success("Frontend demonstration analysis complete.");
+      toast.success("Analysis complete.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Analysis failed. Please try again.");
     } finally {
@@ -63,7 +63,7 @@ function ConsolePage() {
             <p className="label-micro text-primary">LOCAL WORKSPACE</p>
             <h1 className="mt-2 text-4xl font-extrabold tracking-tight">New chest X-ray study</h1>
             <p className="mt-2 text-muted-foreground">
-              Upload a study and create a browser-only demonstration report.
+              Upload a study and create an AI-assisted screening report.
             </p>
           </div>
           <Link
@@ -142,7 +142,7 @@ function ConsolePage() {
               disabled={busy}
               className="mt-6 w-full rounded-sm bg-surface-dark py-3 text-sm font-bold text-surface-dark-foreground hover:bg-primary disabled:opacity-60"
             >
-              {busy ? "ANALYSING..." : "RUN DEMO ANALYSIS"}
+              {busy ? "ANALYSING..." : "ANALYSE X-RAY"}
             </button>
           </form>
 

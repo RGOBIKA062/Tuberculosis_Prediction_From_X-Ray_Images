@@ -81,7 +81,7 @@ export function saveScan(scan: ScanRecord) {
   window.dispatchEvent(new Event("pulmoscan-scans"));
 }
 
-export async function analyzeLocally(): Promise<
+export async function analyzeWithBackend(file: File): Promise<
   Pick<
     ScanRecord,
     | "verdict"
@@ -93,15 +93,32 @@ export async function analyzeLocally(): Promise<
     | "recommendation"
   >
 > {
-  await new Promise((resolve) => window.setTimeout(resolve, 900));
+  const formData = new FormData();
+  formData.append("image", file);
+  const response = await fetch(
+    `${import.meta.env["VITE_API_URL"] ?? "http://127.0.0.1:5000"}/api/predict`,
+    { method: "POST", body: formData },
+  );
+  const payload = (await response.json()) as {
+    success?: boolean;
+    prediction?: "Normal" | "Tuberculosis";
+    confidence?: number;
+    error?: string;
+  };
+  if (!response.ok || !payload.success || !payload.prediction || payload.confidence == null) {
+    throw new Error(payload.error ?? "Analysis failed. Please try again.");
+  }
+
+  const tuberculosisProbability =
+    payload.prediction === "Tuberculosis" ? payload.confidence : 100 - payload.confidence;
   return {
-    verdict: "Normal",
-    probability: 12,
-    confidence: 88,
+    verdict: payload.prediction,
+    probability: Number(tuberculosisProbability.toFixed(2)),
+    confidence: payload.confidence,
     affectedRegion: "None",
     regionBox: { x: 0, y: 0, width: 0, height: 0 },
     findings:
-      "No focal opacity is detected in this frontend demonstration result. Review the image quality and clinical context before making a decision.",
+      "The model completed an automated screening prediction. Review the image quality and clinical context before making a decision.",
     recommendation:
       "Use clinical assessment and confirmatory testing where tuberculosis remains suspected.",
   };
