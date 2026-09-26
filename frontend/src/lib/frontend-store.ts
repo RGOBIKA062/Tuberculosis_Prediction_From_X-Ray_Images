@@ -8,19 +8,35 @@ type LocalAccount = LocalUser & {
   password: string;
 };
 
+export type ModelPrediction = {
+  name: string;
+  prediction: string;
+  confidence: number;
+  ds_prob: number;
+  dr_prob: number;
+  gradcam?: string;
+};
+
 export type ScanRecord = {
   id: string;
   patientName: string;
   age: string;
   gender: string;
   symptoms: string;
+  previousTreatment: string;
+  treatmentHistory: string;
   fileName: string;
-  verdict: "Tuberculosis" | "Normal";
+  genomicFileName?: string;
+  verdict: "Drug-Sensitive TB (DS-TB)" | "Drug-Resistant TB (DR-TB)" | string;
   probability: number;
   confidence: number;
+  xrayModel: ModelPrediction;
+  genomicModel: ModelPrediction;
+  fusionModel: ModelPrediction;
   affectedRegion: string;
   regionBox: { x: number; y: number; width: number; height: number };
   imageDataUrl: string;
+  gradcamDataUrl?: string;
   findings: string;
   recommendation: string;
   createdAt: string;
@@ -81,12 +97,15 @@ export function saveScan(scan: ScanRecord) {
   window.dispatchEvent(new Event("pulmoscan-scans"));
 }
 
-export async function analyzeWithBackend(file: File): Promise<
+export async function analyzeWithBackend(file: File, mutations?: { gene: string; mutation: string }[]): Promise<
   Pick<
     ScanRecord,
     | "verdict"
     | "probability"
     | "confidence"
+    | "xrayModel"
+    | "genomicModel"
+    | "fusionModel"
     | "affectedRegion"
     | "regionBox"
     | "findings"
@@ -95,31 +114,37 @@ export async function analyzeWithBackend(file: File): Promise<
 > {
   const formData = new FormData();
   formData.append("image", file);
+  if (mutations && mutations.length > 0) {
+    formData.append("mutations", JSON.stringify(mutations));
+  }
   const response = await fetch(
     `${import.meta.env["VITE_API_URL"] ?? "http://127.0.0.1:5000"}/api/predict`,
     { method: "POST", body: formData },
   );
   const payload = (await response.json()) as {
     success?: boolean;
-    prediction?: "Normal" | "Tuberculosis";
-    confidence?: number;
+    xray_model?: ModelPrediction;
+    genomic_model?: ModelPrediction;
+    fusion_model?: ModelPrediction;
     error?: string;
   };
-  if (!response.ok || !payload.success || !payload.prediction || payload.confidence == null) {
+  if (!response.ok || !payload.success || !payload.xray_model || !payload.genomic_model || !payload.fusion_model) {
     throw new Error(payload.error ?? "Analysis failed. Please try again.");
   }
 
-  const tuberculosisProbability =
-    payload.prediction === "Tuberculosis" ? payload.confidence : 100 - payload.confidence;
   return {
-    verdict: payload.prediction,
-    probability: Number(tuberculosisProbability.toFixed(2)),
-    confidence: payload.confidence,
+    verdict: payload.fusion_model.prediction,
+    probability: payload.fusion_model.ds_prob > payload.fusion_model.dr_prob ? payload.fusion_model.ds_prob : payload.fusion_model.dr_prob,
+    confidence: payload.fusion_model.confidence,
+    xrayModel: payload.xray_model,
+    genomicModel: payload.genomic_model,
+    fusionModel: payload.fusion_model,
     affectedRegion: "None",
     regionBox: { x: 0, y: 0, width: 0, height: 0 },
+    gradcamDataUrl: payload.xray_model.gradcam,
     findings:
-      "The model completed an automated screening prediction. Review the image quality and clinical context before making a decision.",
+      "The Multimodal AI completed an automated prediction combining X-Ray and Genomic features for DS-TB vs DR-TB. Review the probabilities and explainability map alongside clinical context before making a decision.",
     recommendation:
-      "Use clinical assessment and confirmatory testing where tuberculosis remains suspected.",
+      "Use this as an initial screening tool. Perform phenotypic drug susceptibility testing (DST) or molecular tests (e.g., Xpert MTB/RIF) to confirm drug resistance.",
   };
 }

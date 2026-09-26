@@ -42,12 +42,19 @@ const pipeline = [
   },
 ];
 
+import { useEffect } from "react";
+
 function Index() {
   const { session } = useSession();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (!session) {
+      navigate({ to: "/auth", replace: true });
+    }
+  }, [session, navigate]);
+
   if (!session) {
-    navigate({ to: "/auth", replace: true });
     return null;
   }
 
@@ -110,6 +117,76 @@ function Index() {
                 <p className="mt-2 text-sm text-muted-foreground">{item.body}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="mb-16 text-center">
+            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Comprehensive Detection Capabilities</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+              Our advanced AI model goes beyond basic detection to identify specific patterns of Tuberculosis, helping clinicians determine the most appropriate treatment pathways.
+            </p>
+          </div>
+          <div className="grid gap-8 lg:grid-cols-2">
+            {/* TB DS Card */}
+            <div className="group relative overflow-hidden rounded-3xl border border-border bg-card p-10 shadow-sm transition-all hover:shadow-lg">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="relative z-10">
+                <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-green-500/10 px-4 py-1.5 text-sm font-semibold text-green-600 dark:text-green-400">
+                  <span className="h-2 w-2 rounded-full bg-green-600 dark:bg-green-400" />
+                  TB DS
+                </div>
+                <h3 className="mb-4 text-3xl font-bold tracking-tight">Drug-Susceptible TB</h3>
+                <p className="mb-6 text-muted-foreground leading-relaxed">
+                  Tuberculosis Drug-Susceptible (TB DS) refers to TB bacteria that respond to standard first-line anti-TB medications. Early and accurate detection of TB DS is crucial for initiating standard, highly effective treatment protocols.
+                </p>
+                <ul className="space-y-3 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">✓</div>
+                    Responsive to standard medications (Isoniazid, Rifampicin)
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">✓</div>
+                    Higher treatment success rate with standard protocols
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">✓</div>
+                    Classic radiographic patterns accurately identified
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            {/* TB DR Card */}
+            <div className="group relative overflow-hidden rounded-3xl border border-border bg-card p-10 shadow-sm transition-all hover:shadow-lg">
+              <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="relative z-10">
+                <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-red-500/10 px-4 py-1.5 text-sm font-semibold text-red-600 dark:text-red-400">
+                  <span className="h-2 w-2 rounded-full bg-red-600 dark:bg-red-400 animate-pulse" />
+                  TB DR
+                </div>
+                <h3 className="mb-4 text-3xl font-bold tracking-tight">Drug-Resistant TB</h3>
+                <p className="mb-6 text-muted-foreground leading-relaxed">
+                  Tuberculosis Drug-Resistant (TB DR) indicates that the bacteria do not respond to at least one primary first-line drug. Identifying markers associated with MDR or XDR TB helps prioritize patients for rapid molecular testing and intensive care.
+                </p>
+                <ul className="space-y-3 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-destructive/10 text-destructive">!</div>
+                    Resistant to core drugs (MDR-TB / XDR-TB)
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-destructive/10 text-destructive">!</div>
+                    Requires specialized, prolonged intensive treatment
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-destructive/10 text-destructive">!</div>
+                    Flags high-risk atypical radiographic presentations
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </section>
